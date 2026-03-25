@@ -220,6 +220,60 @@
             top: 55px;
         }
 
+        /* Sofa */
+        .sofa {
+            position: absolute;
+            bottom: 150px;
+            right: 350px;
+            width: 80px;
+            height: 50px;
+            background: #805ad5;
+            border: 3px solid #6b46c1;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .sofa::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 5px;
+            width: 10px;
+            height: 40px;
+            background: #6b46c1;
+            border-radius: 8px 0 0 0;
+        }
+
+        .sofa::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 5px;
+            width: 10px;
+            height: 40px;
+            background: #6b46c1;
+            border-radius: 0 8px 0 0;
+        }
+
+        .sofa-cushions {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 60px;
+            height: 25px;
+            background: #9f7aea;
+            border-radius: 4px;
+        }
+
+        .sofa-cushions::after {
+            content: '';
+            position: absolute;
+            left: 28px;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: #805ad5;
+        }
+
         /* Character */
         .character {
             position: absolute;
@@ -336,6 +390,21 @@
             left: 50px;
         }
 
+        .character.on-sofa {
+            bottom: 165px;
+            right: 320px;
+            left: auto;
+        }
+
+        .character.on-sofa .character-arms {
+            animation: none;
+        }
+
+        .character.on-sofa .character-legs {
+            transform: rotate(-45deg);
+            transform-origin: top center;
+        }
+
         /* Status indicator */
         .status {
             position: absolute;
@@ -370,18 +439,16 @@
 
         /* Event log */
         .event-log {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            width: 300px;
-            max-height: 150px;
+            width: 800px;
+            max-height: 200px;
             overflow-y: auto;
             background: rgba(0,0,0,0.8);
-            border: 2px solid #4299e1;
+            border: 4px solid #16213e;
             border-radius: 4px;
-            padding: 10px;
-            font-size: 11px;
-            z-index: 100;
+            padding: 15px;
+            font-size: 12px;
+            margin: 0 auto;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
 
         .event-log-entry {
@@ -537,26 +604,22 @@
         <div class="printer"></div>
         <div class="filing-cabinet"></div>
 
-        <div class="character at-desk">
+        <div class="sofa">
+            <div class="sofa-cushions"></div>
+        </div>
+
+        <div class="character on-sofa">
             <div class="character-head"></div>
             <div class="character-body"></div>
-            <div class="character-arms typing"></div>
+            <div class="character-arms"></div>
             <div class="character-legs"></div>
         </div>
 
         <div class="paper"></div>
 
         <div class="status">
-            <span class="status-dot coding"></span>
-            <span class="status-text">Coding...</span>
-        </div>
-
-        <div class="event-log" id="eventLog">
-            <div class="event-log-entry">
-                <span class="event-time">00:00:00</span>
-                <span class="event-type">INIT</span>
-                <span>claudeHQ started</span>
-            </div>
+            <span class="status-dot idle"></span>
+            <span class="status-text">Waiting for work...</span>
         </div>
 
         <div class="controls">
@@ -568,6 +631,14 @@
         </div>
     </div>
 
+    <div class="event-log" id="eventLog">
+        <div class="event-log-entry">
+            <span class="event-time">00:00:00</span>
+            <span class="event-type">INIT</span>
+            <span>claudeHQ ready - waiting for Claude activity...</span>
+        </div>
+    </div>
+
     <script>
         const character = document.querySelector('.character');
         const statusDot = document.querySelector('.status-dot');
@@ -576,6 +647,32 @@
         const characterArms = document.querySelector('.character-arms');
         const whiteboardContent = document.querySelector('.whiteboard-content');
         let subagentCounter = 0;
+        let lastActivityTime = Date.now();
+        let idleTimeout = null;
+        const IDLE_DELAY = 5000; // 5 seconds
+
+        function resetIdleTimer() {
+            lastActivityTime = Date.now();
+            clearTimeout(idleTimeout);
+            idleTimeout = setTimeout(checkIdle, 1000);
+        }
+
+        function checkIdle() {
+            const now = Date.now();
+            const idleTime = now - lastActivityTime;
+
+            if (idleTime >= IDLE_DELAY) {
+                // Move to sofa if not already there
+                if (!character.className.includes('on-sofa')) {
+                    character.className = 'character on-sofa';
+                    characterArms.classList.remove('typing');
+                    updateStatus('idle', 'Waiting for work...');
+                }
+            }
+
+            // Check again in 1 second
+            idleTimeout = setTimeout(checkIdle, 1000);
+        }
 
         function getTime() {
             const now = new Date();
@@ -604,6 +701,8 @@
         }
 
         function simulateEvent(eventType) {
+            resetIdleTimer(); // Reset idle timer on any activity
+
             switch(eventType) {
                 case 'thinking':
                     character.className = 'character at-whiteboard';
@@ -786,6 +885,9 @@
 
         // Initialize
         logEvent('SYSTEM', 'Office initialized');
+
+        // Start idle detection
+        resetIdleTimer();
 
         // Try to connect to WebSocket server
         connectWebSocket();
