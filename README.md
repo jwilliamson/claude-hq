@@ -4,6 +4,8 @@
 
 Watch Claude work in a charming pixel art office environment! See a little character move around their workspace as Claude Code performs different tasks - coding at the desk, thinking at the whiteboard, accessing skills from the filing cabinet, and more.
 
+![claudeHQ UI](docs/ui.png)
+
 ## Features
 
 - **Real-time visualization** of Claude Code activities
