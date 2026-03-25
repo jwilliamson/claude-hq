@@ -126,12 +126,30 @@ All events are JSON with this structure:
 - Don't add authentication or security layers (it's localhost only)
 - Don't commit node_modules or .claude/settings.local.json
 
-### Current Limitations
-- No actual Claude Code integration yet (hooks not implemented)
-- Events must be sent manually or via demo mode
+### Claude Code Hook Integration
+
+Users can set up automatic event sending via hooks. The README contains prompts for users to configure this themselves. **Do not automatically add hooks** unless the user explicitly asks.
+
+### Hook Setup Prompt (in README)
+Users give Claude this prompt to set up hooks:
+```
+Add hooks to my Claude Code settings that POST to http://localhost:8080/event
+when Claude uses tools. For each tool use, send a JSON event with type, tool
+name, and timestamp. Use PreToolUse hook, curl with -s flag, and run in
+background with async:true to avoid blocking Claude.
+```
+
+### Hook Removal Prompt (in README)
+```
+Remove the claudeHQ hooks from my Claude Code settings. Look for the PreToolUse
+hook that posts to http://localhost:8080/event and remove it from settings.json.
+```
+
+## Current Limitations
 - Single browser client only (no multi-user state)
 - No event history or replay functionality
 - Animations don't queue (rapid events may overlap)
+- No "thinking" events (Claude Code doesn't have hooks for reasoning phases)
 
 ### Future Ideas (not implemented)
 - Direct Claude Code hook integration

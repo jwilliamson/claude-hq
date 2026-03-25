@@ -97,7 +97,34 @@ This will send a sequence of test events to see all the animations.
 
 ## Integration with Claude Code
 
-### Option 1: Manual Event Sending
+### Option 1: Automatic Hooks (Recommended)
+
+Set up Claude Code to automatically send events as it works. This requires Claude Code with hooks support.
+
+**To enable hooks**, give Claude this prompt:
+
+```
+Add hooks to my Claude Code settings that POST to http://localhost:8080/event
+when Claude uses tools. For each tool use, send a JSON event with type, tool
+name, and timestamp. Use PreToolUse hook, curl with -s flag, and run in
+background with async:true to avoid blocking Claude.
+```
+
+Claude will configure hooks in your settings.json that automatically send events for:
+- Tool usage (Read, Edit, Write, Bash, Grep, Glob, etc.) → `type: "tool"`
+- Sub-agent spawns (Agent tool) → `type: "agent"`
+- Skill invocations (Skill tool) → `type: "skill"`
+
+**To remove hooks**, give Claude this prompt:
+
+```
+Remove the claudeHQ hooks from my Claude Code settings. Look for the PreToolUse
+hook that posts to http://localhost:8080/event and remove it from settings.json.
+```
+
+**Important:** Keep the claudeHQ server running (`npm start`) whenever you're using Claude Code, or events will be lost.
+
+### Option 2: Manual Event Sending
 
 Send events from any script:
 
@@ -111,10 +138,6 @@ curl -X POST http://localhost:8080/event \
     "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"
   }'
 ```
-
-### Option 2: Claude Code Hooks (Future)
-
-The `claude-hook.sh` script template is provided for future Claude Code integration when hooks are supported.
 
 ### Option 3: Custom Monitoring
 
