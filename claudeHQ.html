@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>claudeHQ - Your AI Office</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a2e;
+            color: #eee;
+            overflow: hidden;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        #office {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            margin: 20px auto;
+            background: #2d3561;
+            border: 4px solid #16213e;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        /* Office elements */
+        .floor {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 150px;
+            background: #4a5568;
+            border-top: 4px solid #2d3748;
+        }
+
+        .wall {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 450px;
+            background: linear-gradient(180deg, #5a67d8 0%, #4c51bf 100%);
+        }
+
+        .window {
+            position: absolute;
+            top: 50px;
+            right: 100px;
+            width: 120px;
+            height: 140px;
+            background: #87ceeb;
+            border: 6px solid #2c5282;
+            box-shadow: inset 0 0 20px rgba(255,255,255,0.3);
+        }
+
+        .window::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #2c5282;
+            top: 50%;
+            left: 0;
+        }
+
+        .window::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            background: #2c5282;
+            left: 50%;
+            top: 0;
+        }
+
+        .desk {
+            position: absolute;
+            bottom: 120px;
+            left: 280px;
+            width: 200px;
+            height: 80px;
+            background: #8b4513;
+            border: 3px solid #654321;
+            border-radius: 4px;
+        }
+
+        .desk::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: 20px;
+            width: 10px;
+            height: 40px;
+            background: #654321;
+            box-shadow: 150px 0 0 #654321;
+        }
+
+        .computer {
+            position: absolute;
+            top: -40px;
+            left: 60px;
+            width: 80px;
+            height: 60px;
+            background: #2d3748;
+            border: 3px solid #1a202c;
+        }
+
+        .computer::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 66px;
+            height: 40px;
+            background: #48bb78;
+            animation: screenGlow 2s ease-in-out infinite;
+        }
+
+        .computer::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 30px;
+            width: 20px;
+            height: 8px;
+            background: #4a5568;
+        }
+
+        @keyframes screenGlow {
+            0%, 100% { background: #48bb78; box-shadow: 0 0 10px #48bb78; }
+            50% { background: #68d391; box-shadow: 0 0 20px #48bb78; }
+        }
+
+        .whiteboard {
+            position: absolute;
+            top: 80px;
+            left: 80px;
+            width: 160px;
+            height: 120px;
+            background: white;
+            border: 6px solid #2d3748;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .whiteboard-content {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 140px;
+            height: 100px;
+            display: none;
+        }
+
+        .whiteboard-content.active {
+            display: block;
+            animation: drawing 1s ease-in-out;
+        }
+
+        .whiteboard-content svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        @keyframes drawing {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .printer {
+            position: absolute;
+            bottom: 160px;
+            right: 100px;
+            width: 60px;
+            height: 50px;
+            background: #718096;
+            border: 3px solid #4a5568;
+        }
+
+        .printer::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 5px;
+            width: 46px;
+            height: 10px;
+            background: #4a5568;
+        }
+
+        .filing-cabinet {
+            position: absolute;
+            bottom: 150px;
+            left: 50px;
+            width: 50px;
+            height: 90px;
+            background: #718096;
+            border: 3px solid #4a5568;
+        }
+
+        .filing-cabinet::before,
+        .filing-cabinet::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 2px;
+            background: #2d3748;
+            left: 10px;
+        }
+
+        .filing-cabinet::before {
+            top: 25px;
+        }
+
+        .filing-cabinet::after {
+            top: 55px;
+        }
+
+        /* Character */
+        .character {
+            position: absolute;
+            bottom: 150px;
+            left: 350px;
+            width: 40px;
+            height: 60px;
+            transition: all 0.5s ease-in-out;
+            z-index: 10;
+        }
+
+        .character-body {
+            position: absolute;
+            bottom: 0;
+            left: 10px;
+            width: 20px;
+            height: 35px;
+            background: #4299e1;
+            border: 2px solid #2b6cb0;
+        }
+
+        .character-head {
+            position: absolute;
+            top: 0;
+            left: 8px;
+            width: 24px;
+            height: 24px;
+            background: #fbd38d;
+            border: 2px solid #f6ad55;
+            border-radius: 50%;
+        }
+
+        .character-head::before,
+        .character-head::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #2d3748;
+            border-radius: 50%;
+            top: 8px;
+        }
+
+        .character-head::before {
+            left: 5px;
+        }
+
+        .character-head::after {
+            right: 5px;
+        }
+
+        .character-arms {
+            position: absolute;
+            top: 26px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: #fbd38d;
+        }
+
+        .character-arms.typing {
+            animation: typing 0.3s ease-in-out infinite;
+        }
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .character-legs {
+            position: absolute;
+            bottom: -20px;
+            left: 12px;
+            width: 16px;
+            height: 20px;
+        }
+
+        .character-legs::before,
+        .character-legs::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 20px;
+            background: #2d3748;
+        }
+
+        .character-legs::before {
+            left: 0;
+        }
+
+        .character-legs::after {
+            right: 0;
+        }
+
+        /* Animations */
+        .character.at-desk {
+            bottom: 150px;
+            left: 330px;
+        }
+
+        .character.at-whiteboard {
+            bottom: 150px;
+            left: 130px;
+        }
+
+        .character.at-printer {
+            bottom: 150px;
+            right: 130px;
+            left: auto;
+        }
+
+        .character.at-filing {
+            bottom: 150px;
+            left: 50px;
+        }
+
+        /* Status indicator */
+        .status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px 15px;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #4299e1;
+            border-radius: 4px;
+            font-size: 14px;
+            z-index: 100;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .status-dot.thinking { background: #f6ad55; }
+        .status-dot.coding { background: #48bb78; }
+        .status-dot.idle { background: #718096; }
+        .status-dot.skill { background: #9f7aea; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        /* Event log */
+        .event-log {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 300px;
+            max-height: 150px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #4299e1;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 11px;
+            z-index: 100;
+        }
+
+        .event-log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid #2d3748;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .event-time {
+            color: #718096;
+            margin-right: 8px;
+        }
+
+        .event-type {
+            color: #4299e1;
+            font-weight: bold;
+        }
+
+        /* Controls */
+        .controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 100;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            margin: 0 4px;
+            background: #4299e1;
+            border: 2px solid #2b6cb0;
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Paper animation */
+        .paper {
+            position: absolute;
+            width: 20px;
+            height: 25px;
+            background: white;
+            border: 1px solid #ccc;
+            z-index: 5;
+            display: none;
+        }
+
+        .paper.flying {
+            display: block;
+            animation: flyPaper 2s ease-in-out forwards;
+        }
+
+        @keyframes flyPaper {
+            0% {
+                right: 120px;
+                bottom: 180px;
+                transform: rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                left: 360px;
+                bottom: 180px;
+                transform: rotate(360deg);
+                opacity: 1;
+            }
+        }
+
+        /* Sub-agent indicator */
+        .subagent {
+            position: absolute;
+            width: 30px;
+            height: 50px;
+            bottom: 150px;
+            z-index: 9;
+            opacity: 0;
+        }
+
+        .subagent.active {
+            animation: walkIn 1s ease-out forwards;
+        }
+
+        @keyframes walkIn {
+            0% {
+                left: -50px;
+                opacity: 0;
+            }
+            100% {
+                left: 200px;
+                opacity: 1;
+            }
+        }
+
+        .subagent-body {
+            position: absolute;
+            bottom: 0;
+            left: 8px;
+            width: 14px;
+            height: 28px;
+            background: #ed64a6;
+            border: 2px solid #b83280;
+        }
+
+        .subagent-head {
+            position: absolute;
+            top: 0;
+            left: 6px;
+            width: 18px;
+            height: 18px;
+            background: #fbd38d;
+            border: 2px solid #f6ad55;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div id="office">
+        <div class="wall"></div>
+        <div class="floor"></div>
+
+        <div class="window"></div>
+        <div class="whiteboard">
+            <div class="whiteboard-content">
+                <svg viewBox="0 0 100 100">
+                    <path d="M10,50 Q30,20 50,50 T90,50" stroke="#4299e1" stroke-width="3" fill="none"/>
+                    <circle cx="30" cy="35" r="8" fill="#f6ad55"/>
+                    <circle cx="70" cy="35" r="8" fill="#48bb78"/>
+                    <rect x="20" y="70" width="60" height="8" fill="#9f7aea"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="desk">
+            <div class="computer"></div>
+        </div>
+
+        <div class="printer"></div>
+        <div class="filing-cabinet"></div>
+
+        <div class="character at-desk">
+            <div class="character-head"></div>
+            <div class="character-body"></div>
+            <div class="character-arms typing"></div>
+            <div class="character-legs"></div>
+        </div>
+
+        <div class="paper"></div>
+
+        <div class="status">
+            <span class="status-dot coding"></span>
+            <span class="status-text">Coding...</span>
+        </div>
+
+        <div class="event-log" id="eventLog">
+            <div class="event-log-entry">
+                <span class="event-time">00:00:00</span>
+                <span class="event-type">INIT</span>
+                <span>claudeHQ started</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="simulateEvent('thinking')">Think</button>
+            <button class="btn" onclick="simulateEvent('coding')">Code</button>
+            <button class="btn" onclick="simulateEvent('skill')">Skill</button>
+            <button class="btn" onclick="simulateEvent('subagent')">Sub-agent</button>
+            <button class="btn" onclick="simulateEvent('complete')">Complete</button>
+        </div>
+    </div>
+
+    <script>
+        const character = document.querySelector('.character');
+        const statusDot = document.querySelector('.status-dot');
+        const statusText = document.querySelector('.status-text');
+        const eventLog = document.getElementById('eventLog');
+        const characterArms = document.querySelector('.character-arms');
+        const whiteboardContent = document.querySelector('.whiteboard-content');
+        let subagentCounter = 0;
+
+        function getTime() {
+            const now = new Date();
+            return now.toTimeString().split(' ')[0];
+        }
+
+        function logEvent(type, message) {
+            const entry = document.createElement('div');
+            entry.className = 'event-log-entry';
+            entry.innerHTML = `
+                <span class="event-time">${getTime()}</span>
+                <span class="event-type">${type}</span>
+                <span>${message}</span>
+            `;
+            eventLog.insertBefore(entry, eventLog.firstChild);
+
+            // Keep only last 10 entries
+            while (eventLog.children.length > 10) {
+                eventLog.removeChild(eventLog.lastChild);
+            }
+        }
+
+        function updateStatus(state, text) {
+            statusDot.className = `status-dot ${state}`;
+            statusText.textContent = text;
+        }
+
+        function simulateEvent(eventType) {
+            switch(eventType) {
+                case 'thinking':
+                    character.className = 'character at-whiteboard';
+                    characterArms.classList.remove('typing');
+                    whiteboardContent.classList.add('active');
+                    updateStatus('thinking', 'Thinking...');
+                    logEvent('THINK', 'Analyzing problem at whiteboard');
+
+                    setTimeout(() => {
+                        whiteboardContent.classList.remove('active');
+                    }, 3000);
+                    break;
+
+                case 'coding':
+                    character.className = 'character at-desk';
+                    characterArms.classList.add('typing');
+                    whiteboardContent.classList.remove('active');
+                    updateStatus('coding', 'Coding...');
+                    logEvent('TOOL', 'Edit: Writing code');
+                    break;
+
+                case 'skill':
+                    character.className = 'character at-filing';
+                    characterArms.classList.remove('typing');
+                    updateStatus('skill', 'Using skill...');
+                    logEvent('SKILL', 'Accessing skill from filing cabinet');
+
+                    setTimeout(() => {
+                        character.className = 'character at-desk';
+                        characterArms.classList.add('typing');
+                        updateStatus('coding', 'Coding...');
+                    }, 2000);
+                    break;
+
+                case 'subagent':
+                    const subagent = document.createElement('div');
+                    subagent.className = 'subagent';
+                    subagent.style.bottom = (150 + (subagentCounter * 60)) + 'px';
+                    subagent.innerHTML = `
+                        <div class="subagent-head"></div>
+                        <div class="subagent-body"></div>
+                    `;
+                    document.getElementById('office').appendChild(subagent);
+
+                    setTimeout(() => subagent.classList.add('active'), 10);
+                    subagentCounter++;
+
+                    logEvent('AGENT', `Sub-agent #${subagentCounter} spawned`);
+
+                    // Clean up after animation
+                    setTimeout(() => {
+                        subagent.remove();
+                        subagentCounter--;
+                    }, 5000);
+                    break;
+
+                case 'complete':
+                    character.className = 'character at-printer';
+                    characterArms.classList.remove('typing');
+                    updateStatus('idle', 'Task complete');
+                    logEvent('COMPLETE', 'Task finished, printing report');
+
+                    setTimeout(() => {
+                        const paper = document.querySelector('.paper');
+                        paper.classList.add('flying');
+
+                        setTimeout(() => {
+                            paper.classList.remove('flying');
+                            character.className = 'character at-desk';
+                            characterArms.classList.add('typing');
+                            updateStatus('coding', 'Ready for next task');
+                        }, 2000);
+                    }, 1000);
+                    break;
+            }
+        }
+
+        // WebSocket Connection
+        let ws = null;
+        let reconnectAttempts = 0;
+        const MAX_RECONNECT_ATTEMPTS = 5;
+
+        function connectWebSocket() {
+            try {
+                ws = new WebSocket('ws://localhost:8081');
+
+                ws.onopen = () => {
+                    console.log('Connected to claudeHQ server');
+                    logEvent('SYSTEM', '🔌 Connected to server');
+                    reconnectAttempts = 0;
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        console.log('Event received:', data);
+                        handleServerEvent(data);
+                    } catch (error) {
+                        console.error('Error parsing message:', error);
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    logEvent('ERROR', 'Connection error');
+                };
+
+                ws.onclose = () => {
+                    console.log('Disconnected from server');
+                    logEvent('SYSTEM', '⚠️ Disconnected from server');
+
+                    // Attempt to reconnect
+                    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                        reconnectAttempts++;
+                        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 10000);
+                        console.log(`Reconnecting in ${delay}ms... (attempt ${reconnectAttempts})`);
+                        setTimeout(connectWebSocket, delay);
+                    } else {
+                        logEvent('SYSTEM', '❌ Server unavailable. Using manual mode.');
+                    }
+                };
+            } catch (error) {
+                console.error('Failed to connect:', error);
+                logEvent('SYSTEM', '⚠️ Server not running. Using manual mode.');
+            }
+        }
+
+        function handleServerEvent(data) {
+            const { type, tool, message } = data;
+
+            switch (type) {
+                case 'connected':
+                    // Initial connection message
+                    break;
+
+                case 'thinking':
+                    simulateEvent('thinking');
+                    break;
+
+                case 'tool':
+                    // Map tools to animations
+                    if (tool === 'Read' || tool === 'Edit' || tool === 'Write') {
+                        simulateEvent('coding');
+                        logEvent('TOOL', `${tool}: ${message || 'Working...'}`);
+                    } else if (tool === 'Bash') {
+                        simulateEvent('coding');
+                        logEvent('TOOL', `Bash: ${message || 'Executing command'}`);
+                    } else if (tool === 'Grep' || tool === 'Glob') {
+                        simulateEvent('coding');
+                        logEvent('TOOL', `${tool}: ${message || 'Searching...'}`);
+                    } else {
+                        simulateEvent('coding');
+                        logEvent('TOOL', `${tool}: ${message || 'Using tool'}`);
+                    }
+                    break;
+
+                case 'agent':
+                    simulateEvent('subagent');
+                    logEvent('AGENT', message || 'Sub-agent spawned');
+                    break;
+
+                case 'skill':
+                    simulateEvent('skill');
+                    logEvent('SKILL', message || 'Skill invoked');
+                    break;
+
+                case 'complete':
+                    simulateEvent('complete');
+                    logEvent('COMPLETE', message || 'Task completed');
+                    break;
+
+                case 'task':
+                    logEvent('TASK', message || 'Task update');
+                    break;
+
+                default:
+                    console.log('Unknown event type:', type);
+            }
+        }
+
+        // Initialize
+        logEvent('SYSTEM', 'Office initialized');
+
+        // Try to connect to WebSocket server
+        connectWebSocket();
+
+        // Keep manual controls working
+        // Buttons will still work even when connected to server
+    </script>
+</body>
+</html>
